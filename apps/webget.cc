@@ -12,7 +12,7 @@ namespace {
 void get_URL( const string& host, const string& path )
 {
   debug( "Function called: get_URL( \"{}\", \"{}\" )", host, path );
-  debug( "get_URL() function not yet implemented" );
+  debug( "get_URL() function implemented" );
 
   TCPSocket socket;
   const Address address { host, "http" };
