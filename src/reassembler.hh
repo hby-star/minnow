@@ -9,9 +9,7 @@ public:
   // Construct Reassembler to write into given ByteStream.
   explicit Reassembler( ByteStream&& output )
     : output_( std::move( output ) ),
-      buffer_( output_.writer().available_capacity(), 0 ),
-      occupied_( buffer_.size(), false ),
-      index_of_( buffer_.size(), 0 ),
+      buffer_( output_.writer().available_capacity() ),
       first_unpopped_( 0 ),
       first_unassembled_( 0 ),
       first_unacceptable_( buffer_.size() ),
@@ -55,15 +53,15 @@ public:
 private:
   ByteStream output_;
 
-  // buffer to hold bytes temporarily
-  std::vector<char> buffer_;
-  // occupancy bitmap for buffer_: true == byte present
-  std::vector<bool> occupied_;
-  // absolute index tag for each slot to avoid aliasing on wrap
-  std::vector<uint64_t> index_of_;
-  uint64_t first_unpopped_;
-  uint64_t first_unassembled_;
-  uint64_t first_unacceptable_;
-  bool eof_received_;
-  uint64_t eof_index_;
+  struct Slot {
+    char byte { 0 };            // unassembled byte
+    bool occupied { false };    // is this slot occupied?
+    uint64_t index { 0 };       // absolute index of this byte
+  };
+  std::vector<Slot> buffer_;    // buffer
+  uint64_t first_unpopped_;     // index of the first byte not yet popped
+  uint64_t first_unassembled_;  // index of the first byte not yet assembled
+  uint64_t first_unacceptable_; // index one past the last acceptable byte
+  bool eof_received_;           // has EOF been received
+  uint64_t eof_index_;          // index one past the last byte (absolute)
 };
