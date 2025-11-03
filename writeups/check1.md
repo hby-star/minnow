@@ -1,9 +1,9 @@
 Checkpoint 1 Writeup
 ====================
 
-My name: [your name here]
+My name: Hou Binyang
 
-My SUNet ID: [your sunetid here]
+My stuid: 25113050255
 
 I collaborated with: [list sunetids here]
 
@@ -26,6 +26,13 @@ measurements if applicable.]
 
 Implementation Challenges:
 []
+
+It's hard to choose the right data structure to store the unassembled segments.
+At first, I used a map to store the segments, with the key being the start index of the segment.
+However, this approach made it difficult to efficiently merge overlapping segments.
+Secondly, I used a list to store the segments. Again, merging overlapping segments proved to be tricky and inefficient.
+Finally, I decided to use a vector of Slot to store the unassembled bytes. Each Slot contains a character(byte), a boolean(whether this slot is occupied), and a int(index of the slot). The buffer size is same as the capacity of the Reassembler. Making it easy to find and merge overlapping segments, which improved both the simplicity and performance of the implementation.
+
 
 Remaining Bugs:
 []
