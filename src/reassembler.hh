@@ -1,12 +1,23 @@
 #pragma once
 
 #include "byte_stream.hh"
+#include <vector>
 
 class Reassembler
 {
 public:
   // Construct Reassembler to write into given ByteStream.
-  explicit Reassembler( ByteStream&& output ) : output_( std::move( output ) ) {}
+  explicit Reassembler( ByteStream&& output )
+    : output_( std::move( output ) ),
+      buffer_( output_.writer().available_capacity(), 0 ),
+      occupied_( buffer_.size(), false ),
+      index_of_( buffer_.size(), 0 ),
+      first_unpopped_( 0 ),
+      first_unassembled_( 0 ),
+      first_unacceptable_( buffer_.size() ),
+      eof_received_( false ),
+      eof_index_( 0 )
+  {}
 
   /*
    * Insert a new substring to be reassembled into a ByteStream.
@@ -43,4 +54,16 @@ public:
 
 private:
   ByteStream output_;
+
+  // buffer to hold bytes temporarily
+  std::vector<char> buffer_;
+  // occupancy bitmap for buffer_: true == byte present
+  std::vector<bool> occupied_;
+  // absolute index tag for each slot to avoid aliasing on wrap
+  std::vector<uint64_t> index_of_;
+  uint64_t first_unpopped_;
+  uint64_t first_unassembled_;
+  uint64_t first_unacceptable_;
+  bool eof_received_;
+  uint64_t eof_index_;
 };
