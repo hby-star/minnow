@@ -12,6 +12,7 @@ void Reassembler::insert( uint64_t first_index, string data, bool is_last_substr
   }
 
   const uint64_t cap = output_.capacity();
+  const uint64_t avail = output_.writer().available_capacity();
   first_unpopped_ = output_.reader().bytes_popped();
   first_unacceptable_ = first_unpopped_ + cap;
 
@@ -46,13 +47,9 @@ void Reassembler::insert( uint64_t first_index, string data, bool is_last_substr
   }
 
   // attempt to assemble contiguous bytes starting at first_unassembled_
-  while ( true ) {
-    uint64_t avail = output_.writer().available_capacity();
-    if ( avail == 0 ) break;
-    // not the next byte yet
-    if ( !buffer_[ first_unassembled_ % cap ].occupied ) break;
-    if ( buffer_[ first_unassembled_ % cap ].index != first_unassembled_ ) break; 
-
+  if (!avail == 0 && 
+      buffer_[ first_unassembled_ % cap ].occupied && 
+      buffer_[ first_unassembled_ % cap ].index == first_unassembled_ ){
     // build up to avail bytes or until gap
     string chunk;
     uint64_t cur = first_unassembled_;
@@ -83,14 +80,11 @@ void Reassembler::insert( uint64_t first_index, string data, bool is_last_substr
 uint64_t Reassembler::count_bytes_pending() const
 {
   // Count bytes stored in the reassembler within the current acceptable window and not yet assembled
-  const uint64_t cap = output_.capacity();
-  const uint64_t first_unpopped_now = output_.reader().bytes_popped();
-  const uint64_t first_unacceptable_now = first_unpopped_now + cap;
   uint64_t cnt = 0;
   for ( size_t pos = 0; pos < buffer_.size(); ++pos ) {
     if ( buffer_[pos].occupied ) {
       const uint64_t idx = buffer_[pos].index;
-      if ( idx >= first_unassembled_ && idx < first_unacceptable_now ) ++cnt;
+      if ( idx >= first_unassembled_ && idx < first_unacceptable_ ) ++cnt;
     }
   }
   return cnt;
