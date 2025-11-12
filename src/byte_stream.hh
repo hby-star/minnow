@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <queue>
 #include <string>
 #include <string_view>
 
@@ -24,14 +25,14 @@ public:
 
 protected:
   // Please add any additional state to the ByteStream here, and not to the Writer and Reader interfaces.
-  std::string buffer_ {};
   uint64_t capacity_;
-  
-  bool is_closed_ { false };
-  bool is_finished_ { false };
-  bool error_ { false };
-  uint64_t total_bytes_pushed_ { 0 };
-  uint64_t total_bytes_popped_ { 0 };
+  std::queue<std::string> buffer_;
+  uint64_t amount_;
+  uint64_t total_pushed_;
+  uint64_t total_poped_;
+  uint64_t first_string_left_size;
+  bool close_;
+  bool error_ {};
 };
 
 class Writer : public ByteStream
@@ -48,8 +49,8 @@ public:
 class Reader : public ByteStream
 {
 public:
-  std::string_view peek() const; // Peek at the next bytes in the buffer -- ideally as many as possible.
-  void pop( uint64_t len );      // Remove `len` bytes from the buffer.
+  std::string_view peek() const; // Peek at the next bytes in the buffer_
+  void pop( uint64_t len );      // Remove `len` bytes from the buffer_
 
   bool is_finished() const;        // Is the stream finished (closed and fully popped)?
   uint64_t bytes_buffered() const; // Number of bytes currently buffered (pushed and not popped)
@@ -57,7 +58,7 @@ public:
 };
 
 /*
- * read: A (provided) helper function thats peeks and pops up to `max_len` bytes
+ * read: A (provided) helper function thats peeks and pops up to `len` bytes
  * from a ByteStream Reader into a string;
  */
-void read( Reader& reader, uint64_t max_len, std::string& out );
+void read( Reader& reader, uint64_t len, std::string& out );

@@ -8,27 +8,28 @@
 
 using namespace std;
 
-namespace {
 void get_URL( const string& host, const string& path )
 {
-  debug( "Function called: get_URL( \"{}\", \"{}\" )", host, path );
-  debug( "get_URL() function implemented" );
+  TCPSocket sock;
 
-  TCPSocket socket;
-  const Address address { host, "http" };
-  socket.connect( address );
-  const string request = "GET " + path + " HTTP/1.1\r\nHost: " + host + "\r\nConnection: close\r\n\r\n";
-  socket.write_all( request );
-  // read all until EOF
-  string response;
-  while ( not socket.eof() ) {
-    string buffer;
-    socket.read( buffer );
-    response += buffer;
+  // Connect to server
+  sock.connect( Address( host, "http" ) );
+
+  // Send HTTP/1.0 request
+  string request = "GET " + path + " HTTP/1.0\r\n"
+                   "Host: " + host + "\r\n"
+                   "\r\n";
+  sock.write( request );
+
+  // Receive response
+  string buffer;
+  while ( !sock.eof() ) {
+    buffer.clear();        // 必须清空，否则内容会累积
+    sock.read( buffer );   // 框架要求 read(buffer)
+    cout << buffer;        // 输出刚读到的内容
   }
-  cout << response;
 }
-} // namespace
+
 
 int main( int argc, char* argv[] )
 {
